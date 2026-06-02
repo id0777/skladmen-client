@@ -70,6 +70,28 @@ jobs:
         run: |
           & "${env:GITHUB_WORKSPACE}/.github/workflows/.craft.ps1" -c --unshelve "${env:GITHUB_WORKSPACE}/.craft.shelf"
 
+      - name: Rebrand craft blueprint (installer chrome)
+        # The craft packaging blueprint (craft-blueprints-owncloud) hard-codes the
+        # product display name, description and publisher used for the NSIS
+        # installer title, Start-menu shortcut, install folder and Add/Remove-
+        # Programs entry. There is no env/CMake hook for these, so patch the
+        # blueprint file in place after Craft has cloned it (before packaging).
+        run: |
+          $files = Get-ChildItem -Path "$env:HOME/craft" -Recurse -Filter owncloud-client.py -ErrorAction SilentlyContinue
+          if (-not $files) { Write-Error "blueprint owncloud-client.py not found under $env:HOME/craft"; exit 1 }
+          foreach ($f in $files) {
+            $c = Get-Content $f.FullName -Raw
+            $c = $c.Replace('self.description = "ownCloud Desktop Client"', 'self.description = "SkladMen Desktop Client"')
+            $c = $c.Replace('self.displayName = "ownCloud"', 'self.displayName = "SkladMen"')
+            $c = $c.Replace('self.webpage = "https://github.com/owncloud/client"', 'self.webpage = "https://skladmen.ru"')
+            $c = $c.Replace('self.defines["company"] = "ownCloud GmbH"', 'self.defines["company"] = "SkladMen"')
+            Set-Content -NoNewline $f.FullName $c
+            Write-Host "patched blueprint: $($f.FullName)"
+          }
+          # fail loudly if any visible ownCloud string survived the patch
+          $left = Select-String -Path $files.FullName -Pattern 'displayName = "ownCloud"','"ownCloud GmbH"','"ownCloud Desktop Client"'
+          if ($left) { $left; Write-Error "ownCloud strings still present in blueprint"; exit 1 }
+
       - name: Prepare
         run: |
           New-Item -ItemType Directory "${env:GITHUB_WORKSPACE}/binaries/"
