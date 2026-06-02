@@ -45,8 +45,9 @@ jobs:
       APPLICATION_SHORTNAME: SkladMen
       # Installer publisher (legal entity). Base64 (UTF-8) so no Cyrillic lands in
       # the YAML/PowerShell source — decoded in the blueprint-rebrand step.
-      # Decodes to: ООО "Бинарность"
-      SKLADMEN_COMPANY_B64: 0J7QntCeICLQkdC40L3QsNGA0L3QvtGB0YLRjCI=
+      # Uses guillemets «» (proper RU typography) instead of ASCII quotes, which
+      # would break the generated NSIS `!define`. Decodes to: ООО «Бинарность»
+      SKLADMEN_COMPANY_B64: 0J7QntCeIMKr0JHQuNC90LDRgNC90L7RgdGC0YzCuw==
 
     steps:
       - name: Check out source (with branding overlay)
