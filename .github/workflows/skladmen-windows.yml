@@ -37,6 +37,12 @@ jobs:
     env:
       CRAFT_TARGET: windows-cl-msvc2022-x86_64
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The craft packaging blueprint reads the executable / shortname from the
+      # environment (not from our CMake branding), falling back to "owncloud".
+      # Set them so the packager's exe name, shortcut target and executable
+      # filter line up with the branded build (skladmen.exe).
+      APPLICATION_EXECUTABLE: skladmen
+      APPLICATION_SHORTNAME: SkladMen
 
     steps:
       - name: Check out source (with branding overlay)

@@ -187,7 +187,11 @@ target_link_libraries(owncloud PUBLIC owncloudGui owncloudResources KDAB::kdsing
 
 MESSAGE(STATUS "OWNCLOUD_SIDEBAR_ICONS: ${APPLICATION_ICON_NAME}: ${OWNCLOUD_SIDEBAR_ICONS}")
 
-ecm_add_app_icon(appIcons ICONS "${OWNCLOUD_ICONS}" SIDEBAR_ICONS "${OWNCLOUD_SIDEBAR_ICONS}" OUTFILE_BASENAME "${APPLICATION_ICON_NAME}")
+# SkladMen: the craft packaging blueprint (craft-blueprints-owncloud) hard-codes
+# the installer icon path as "src/gui/owncloud.ico", so the generated .ico must
+# keep that basename regardless of branding. The icon *content* is still ours
+# (OWNCLOUD_ICONS resolves to the branded skladmen-* images).
+ecm_add_app_icon(appIcons ICONS "${OWNCLOUD_ICONS}" SIDEBAR_ICONS "${OWNCLOUD_SIDEBAR_ICONS}" OUTFILE_BASENAME "owncloud")
 target_sources(owncloud PRIVATE ${appIcons})
 
 if(NOT APPLE)
