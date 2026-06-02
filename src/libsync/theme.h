@@ -213,6 +213,14 @@ public:
     virtual QString overrideServerPath() const;
 
     /**
+     * SkladMen branding addition: a default server URL that is pre-filled into
+     * the connection wizard while remaining editable (unlike overrideServerUrl,
+     * which hides the field). Returns an empty string by default (vanilla
+     * behaviour); branded themes may override it.
+     */
+    virtual QString defaultServerUrl() const;
+
+    /**
      * The default folder name without path on the server at setup time.
      */
     virtual QString defaultServerFolder() const;

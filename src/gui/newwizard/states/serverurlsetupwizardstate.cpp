@@ -36,11 +36,18 @@ ServerUrlSetupWizardState::ServerUrlSetupWizardState(SetupWizardContext *context
     : AbstractSetupWizardState(context)
 {
     auto serverUrl = [this]() {
-        if (Theme::instance()->wizardEnableWebfinger()) {
-            return _context->accountBuilder().legacyWebFingerServerUrl();
-        } else {
-            return _context->accountBuilder().serverUrl();
+        QUrl url = Theme::instance()->wizardEnableWebfinger()
+            ? _context->accountBuilder().legacyWebFingerServerUrl()
+            : _context->accountBuilder().serverUrl();
+        // SkladMen branding: pre-fill an editable default server URL for fresh
+        // accounts (Theme::defaultServerUrl() is empty for vanilla builds).
+        if (url.isEmpty()) {
+            const QString fallback = Theme::instance()->defaultServerUrl();
+            if (!fallback.isEmpty()) {
+                url = QUrl::fromUserInput(fallback);
+            }
         }
+        return url;
     }();
 
     _page = new ServerUrlSetupWizardPage(serverUrl);
