@@ -43,6 +43,10 @@ jobs:
       # filter line up with the branded build (skladmen.exe).
       APPLICATION_EXECUTABLE: skladmen
       APPLICATION_SHORTNAME: SkladMen
+      # Installer publisher (legal entity). Base64 (UTF-8) so no Cyrillic lands in
+      # the YAML/PowerShell source — decoded in the blueprint-rebrand step.
+      # Decodes to: ООО "Бинарность"
+      SKLADMEN_COMPANY_B64: 0J7QntCeICLQkdC40L3QsNGA0L3QvtGB0YLRjCI=
 
     steps:
       - name: Check out source (with branding overlay)
@@ -77,6 +81,9 @@ jobs:
         # Programs entry. There is no env/CMake hook for these, so patch the
         # blueprint file in place after Craft has cloned it (before packaging).
         run: |
+          $company = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:SKLADMEN_COMPANY_B64))
+          # Python single-quoted literal so the inner double-quotes survive.
+          $pyCompany = 'self.defines["company"] = ' + "'" + $company + "'"
           $files = Get-ChildItem -Path "$env:HOME/craft" -Recurse -Filter owncloud-client.py -ErrorAction SilentlyContinue
           if (-not $files) { Write-Error "blueprint owncloud-client.py not found under $env:HOME/craft"; exit 1 }
           foreach ($f in $files) {
@@ -84,9 +91,9 @@ jobs:
             $c = $c.Replace('self.description = "ownCloud Desktop Client"', 'self.description = "SkladMen Desktop Client"')
             $c = $c.Replace('self.displayName = "ownCloud"', 'self.displayName = "SkladMen"')
             $c = $c.Replace('self.webpage = "https://github.com/owncloud/client"', 'self.webpage = "https://skladmen.ru"')
-            $c = $c.Replace('self.defines["company"] = "ownCloud GmbH"', 'self.defines["company"] = "SkladMen"')
-            Set-Content -NoNewline $f.FullName $c
-            Write-Host "patched blueprint: $($f.FullName)"
+            $c = $c.Replace('self.defines["company"] = "ownCloud GmbH"', $pyCompany)
+            Set-Content -NoNewline -Encoding utf8 $f.FullName $c
+            Write-Host "patched blueprint: $($f.FullName) (company=$company)"
           }
           # fail loudly if any visible ownCloud string survived the patch
           $left = Select-String -Path $files.FullName -Pattern 'displayName = "ownCloud"','"ownCloud GmbH"','"ownCloud Desktop Client"'
