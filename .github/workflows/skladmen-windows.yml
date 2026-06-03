@@ -135,3 +135,27 @@ jobs:
         with:
           name: SkladMen-windows-installer
           path: ${{ github.workspace }}/binaries/*
+
+      - name: Publish to update feed
+        # Streams the freshly built installer to skladmen.ru via a restricted
+        # deploy key (forced command: can ONLY publish, no shell). Skips quietly
+        # if the secret is not configured. Version = 6.0.3.<run> (matches the
+        # build number stamped into the client).
+        env:
+          DEPLOY_KEY: ${{ secrets.CT103_DEPLOY_KEY }}
+        run: |
+          if (-not $env:DEPLOY_KEY) {
+            Write-Host "CT103_DEPLOY_KEY not set - skipping auto-publish."
+            exit 0
+          }
+          $exe = Get-ChildItem "${env:GITHUB_WORKSPACE}/binaries" -Filter *.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) { Write-Error "no .exe found in binaries/ to publish"; exit 1 }
+          $key = Join-Path $env:RUNNER_TEMP "ci_deploy"
+          [System.IO.File]::WriteAllText($key, $env:DEPLOY_KEY)   # preserve LF, no BOM
+          icacls $key /inheritance:r /grant:r "$($env:USERNAME):R" | Out-Null
+          $ver = "6.0.3.$env:GITHUB_RUN_NUMBER"
+          Write-Host "Publishing $ver from $($exe.Name)"
+          cmd /c "ssh -i `"$key`" -o BatchMode=yes -o StrictHostKeyChecking=accept-new root@166.1.71.138 `"$ver`" < `"$($exe.FullName)`""
+          if ($LASTEXITCODE -ne 0) { Remove-Item $key -Force; Write-Error "publish failed"; exit 1 }
+          Remove-Item $key -Force
+          Write-Host "Published $ver to https://skladmen.ru/client/"
