@@ -24,9 +24,19 @@ HRESULT SetHKCRRegistryKeyAndValue(PCWSTR pszSubKey, PCWSTR pszValueName, PCWSTR
     HRESULT hr;
     HKEY hKey = nullptr;
 
+    // SkladMen: register under HKCU\Software\Classes (per-user) instead of HKCR,
+    // so the client can self-register the shell extension on startup without
+    // administrator rights. HKCU\Software\Classes merges into HKCR for the user,
+    // so Explorer honours the context-menu handler.
+    wchar_t szFullKey[1024];
+    hr = StringCchPrintf(szFullKey, ARRAYSIZE(szFullKey), L"Software\\Classes\\%s", pszSubKey);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
     // Creates the specified registry key. If the key already exists, the
     // function opens it.
-    hr = HRESULT_FROM_WIN32(RegCreateKeyEx(HKEY_CLASSES_ROOT, pszSubKey, 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE, nullptr, &hKey, nullptr));
+    hr = HRESULT_FROM_WIN32(RegCreateKeyEx(HKEY_CURRENT_USER, szFullKey, 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE, nullptr, &hKey, nullptr));
 
     if (SUCCEEDED(hr))
     {
@@ -129,11 +139,11 @@ HRESULT OCContextMenuRegHandler::UnregisterInprocServer(const CLSID& clsid)
 
     wchar_t szSubkey[MAX_PATH];
 
-    // Delete the HKCR\CLSID\{<CLSID>} key.
-    hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey), L"CLSID\\%s", szCLSID);
+    // SkladMen: delete the per-user HKCU\Software\Classes\CLSID\{<CLSID>} key.
+    hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey), L"Software\\Classes\\CLSID\\%s", szCLSID);
     if (SUCCEEDED(hr))
     {
-        hr = HRESULT_FROM_WIN32(RegDelnode(HKEY_CLASSES_ROOT, szSubkey));
+        hr = HRESULT_FROM_WIN32(RegDelnode(HKEY_CURRENT_USER, szSubkey));
     }
 
     return hr;
@@ -209,12 +219,13 @@ HRESULT OCContextMenuRegHandler::UnregisterShellExtContextMenuHandler(
         }
     }
 
-    // Remove the HKCR\<File Type>\shellex\ContextMenuHandlers\{friendlyName} key.
+    // SkladMen: remove the per-user
+    // HKCU\Software\Classes\<File Type>\shellex\ContextMenuHandlers\{friendlyName} key.
     hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey),
-        L"%s\\shellex\\ContextMenuHandlers\\%s", pszFileType, pszFriendlyName);
+        L"Software\\Classes\\%s\\shellex\\ContextMenuHandlers\\%s", pszFileType, pszFriendlyName);
     if (SUCCEEDED(hr))
     {
-        hr = HRESULT_FROM_WIN32(RegDelnode(HKEY_CLASSES_ROOT, szSubkey));
+        hr = HRESULT_FROM_WIN32(RegDelnode(HKEY_CURRENT_USER, szSubkey));
     }
 
     return hr;

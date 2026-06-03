@@ -59,11 +59,35 @@ ownCloudGui *Application::gui() const
 
 Application *Application::_instance = nullptr;
 
+#if defined(Q_OS_WIN)
+// SkladMen: self-register the Explorer context-menu shell extension for the
+// current user. The DLL's DllRegisterServer writes per-user keys under
+// HKCU\Software\Classes (see OCContextMenuRegHandler), so no admin rights are
+// needed and the craft NSIS installer does not have to register it. Idempotent.
+static void registerShellExtension()
+{
+    const QString dllPath = QCoreApplication::applicationDirPath() + QStringLiteral("/OCContextMenu.dll");
+    HMODULE module = LoadLibraryW(reinterpret_cast<LPCWSTR>(dllPath.utf16()));
+    if (!module) {
+        return;
+    }
+    using RegisterServerFn = HRESULT(WINAPI *)();
+    if (auto registerServer = reinterpret_cast<RegisterServerFn>(GetProcAddress(module, "DllRegisterServer"))) {
+        registerServer();
+    }
+    FreeLibrary(module);
+}
+#endif
+
 Application::Application(Platform *platform, const QString &displayLanguage, bool debugMode)
     : _debugMode(debugMode)
     , _displayLanguage(displayLanguage)
 {
     platform->migrate();
+
+#if defined(Q_OS_WIN)
+    registerShellExtension();
+#endif
 
     qCInfo(lcApplication) << "Plugin search paths:" << qApp->libraryPaths();
 
