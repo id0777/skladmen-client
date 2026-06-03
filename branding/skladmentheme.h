@@ -56,6 +56,24 @@ public:
         return { button, Qt::white, button.darker() };
     }
 
+    // Restrained-corporate secondary button: near-white surface, brand-blue
+    // label, subtle hover. Keeps the UI calm while staying on-brand.
+    QmlButtonColor secondaryButtonColor() const override
+    {
+        return { QColor(0xee, 0xf2, 0xf8), QColor(0x1f, 0x6f, 0xeb), QColor(0xdd, 0xe6, 0xf3) };
+    }
+
+    // Account/user avatars in the brand palette.
+    QColor avatarColor() const override
+    {
+        return QColor(0x1f, 0x6f, 0xeb);
+    }
+
+    QColor avatarColorChecked() const override
+    {
+        return QColor(0x04, 0x1e, 0x42); // brand dark
+    }
+
     /**
      * The custom-theme resource bundle does not ship the upstream
      * "oc-image-about" asset, so reuse the wizard logo for the About dialog
