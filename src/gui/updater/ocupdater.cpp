@@ -490,22 +490,32 @@ void WindowsUpdater::applyUpdateAndRestart()
     settings.sync();
     qCInfo(lcUpdater) << "Running updater" << updateFile;
 
-    Q_ASSERT(updateFile.endsWith(QLatin1String(".msi")));
-    // When MSIs are installed without gui they cannot launch applications
-    // as they lack the user context. That is why we need to run the client
-    // manually here. We wrap the msiexec and client invocation in a powershell
-    // script because owncloud.exe will be shut down for installation.
-    // | Out-Null forces powershell to wait for msiexec to finish.
+    // The installer will shut this client down for the update, so we wrap the
+    // installer and the relaunch in one detached powershell command. The client
+    // is launched manually afterwards because an unattended installer cannot
+    // start applications itself (no user context).
     auto preparePathForPowershell = [](QString path) {
         path.replace(QLatin1String("'"), QLatin1String("''"));
 
         return QDir::toNativeSeparators(path);
     };
 
-    QString msiLogFile = ConfigFile::configPath() + QStringLiteral("msi.log");
-    const QString command =
-        QStringLiteral("&{msiexec /norestart /passive /i '%1' /L*V '%2'| Out-Null ; &'%3'}")
-            .arg(preparePathForPowershell(updateFile), preparePathForPowershell(msiLogFile), preparePathForPowershell(QCoreApplication::applicationFilePath()));
+    const QString client = preparePathForPowershell(QCoreApplication::applicationFilePath());
+
+    QString command;
+    if (updateFile.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive)) {
+        // MSI path (upstream). | Out-Null forces powershell to wait for msiexec.
+        const QString msiLogFile = ConfigFile::configPath() + QStringLiteral("msi.log");
+        command = QStringLiteral("&{msiexec /norestart /passive /i '%1' /L*V '%2'| Out-Null ; &'%3'}")
+                      .arg(preparePathForPowershell(updateFile), preparePathForPowershell(msiLogFile), client);
+    } else {
+        // SkladMen: our packaged installer is an NSIS .exe, not an MSI. Install
+        // it silently (/S) — Start-Process -Wait blocks until it finishes — then
+        // relaunch the client.
+        Q_ASSERT(updateFile.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive));
+        command = QStringLiteral("&{ Start-Process -Wait -FilePath '%1' -ArgumentList '/S' ; &'%2' }")
+                      .arg(preparePathForPowershell(updateFile), client);
+    }
 
     QProcess::startDetached(QStringLiteral("powershell.exe"), QStringList{QStringLiteral("-Command"), command});
     QTimer::singleShot(0, QApplication::instance(), &QApplication::quit);
