@@ -145,7 +145,7 @@ File synchronization desktop utility.</source>
         <location filename="../src/gui/main.cpp" line="107"/>
         <source>For more information, see %1</source>
         <comment>link to homepage</comment>
-        <translation>Для получения дополнительной информации смотрите% 1</translation>
+        <translation>Для получения дополнительной информации смотрите%1</translation>
     </message>
     <message>
         <location filename="../src/gui/main.cpp" line="126"/>
@@ -2438,7 +2438,7 @@ Note that using any logging command line options will override the settings.</so
     <message>
         <location filename="../src/libsync/propagatorjobs.cpp" line="123"/>
         <source>Could not move &apos;%1&apos; to the trash bin</source>
-        <translation>Не удалось переместить &apos;% 1&apos; в мусорное ведро</translation>
+        <translation>Не удалось переместить &apos;%1&apos; в мусорное ведро</translation>
     </message>
     <message>
         <location filename="../src/libsync/propagatorjobs.cpp" line="87"/>
@@ -3242,7 +3242,7 @@ Note that using any logging command line options will override the settings.</so
     <message>
         <location filename="../src/gui/socketapi/socketapi.cpp" line="1003"/>
         <source>Open in %1</source>
-        <translation>Открыто в% 1</translation>
+        <translation>Открыто в%1</translation>
     </message>
     <message>
         <location filename="../src/gui/socketapi/socketapi.cpp" line="1014"/>
@@ -3320,7 +3320,7 @@ Note that using any logging command line options will override the settings.</so
     <message>
         <location filename="../src/libsync/syncengine.cpp" line="824"/>
         <source>Aborted due to %1</source>
-        <translation>Прервано из-за% 1</translation>
+        <translation>Прервано из-за%1</translation>
     </message>
     <message>
         <location filename="../src/libsync/syncengine.cpp" line="842"/>
@@ -3403,7 +3403,7 @@ Note that using any logging command line options will override the settings.</so
     <message>
         <location filename="../src/gui/tlserrordialog.cpp" line="28"/>
         <source>Cannot connect securely to %1</source>
-        <translation>Не удается безопасно подключиться к% 1</translation>
+        <translation>Не удается безопасно подключиться к%1</translation>
     </message>
     <message>
         <location filename="../src/gui/tlserrordialog.cpp" line="66"/>
@@ -3537,7 +3537,7 @@ Note that using any logging command line options will override the settings.</so
     <message>
         <location filename="../src/gui/newwizard/states/accountconfiguredsetupwizardstate.cpp" line="72"/>
         <source>Invalid local download directory: %1</source>
-        <translation>Недопустимый локальный каталог загрузки:% 1</translation>
+        <translation>Недопустимый локальный каталог загрузки:%1</translation>
     </message>
 </context>
 <context>
@@ -3550,7 +3550,7 @@ Note that using any logging command line options will override the settings.</so
     <message>
         <location filename="../src/gui/newwizard/pages/accountconfiguredwizardpage.cpp" line="45"/>
         <source>%1 (recommended)</source>
-        <translation>% 1 (рекомендуется)</translation>
+        <translation>%1 (рекомендуется)</translation>
     </message>
     <message>
         <location filename="../src/gui/newwizard/pages/accountconfiguredwizardpage.cpp" line="63"/>
@@ -3582,7 +3582,7 @@ Note that using any logging command line options will override the settings.</so
         <location filename="../src/gui/newwizard/pages/legacywebfingersetupwizardpage.cpp" line="51"/>
         <source>Please enter your %1:</source>
         <comment>Please enter your [username, e-mail address, ...]:</comment>
-        <translation>Пожалуйста, введите свой% 1:</translation>
+        <translation>Пожалуйста, введите свой%1:</translation>
     </message>
 </context>
 <context>
@@ -3590,7 +3590,7 @@ Note that using any logging command line options will override the settings.</so
     <message>
         <location filename="../src/gui/newwizard/states/legacywebfingersetupwizardstate.cpp" line="39"/>
         <source>Failed to parse WebFinger response: %1</source>
-        <translation>Не удалось проанализировать ответ WebFinger:% 1</translation>
+        <translation>Не удалось проанализировать ответ WebFinger:%1</translation>
     </message>
     <message>
         <location filename="../src/gui/newwizard/states/legacywebfingersetupwizardstate.cpp" line="44"/>
