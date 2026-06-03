@@ -151,8 +151,14 @@ jobs:
           $exe = Get-ChildItem "${env:GITHUB_WORKSPACE}/binaries" -Filter *.exe -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $exe) { Write-Error "no .exe found in binaries/ to publish"; exit 1 }
           $key = Join-Path $env:RUNNER_TEMP "ci_deploy"
-          [System.IO.File]::WriteAllText($key, $env:DEPLOY_KEY)   # preserve LF, no BOM
-          icacls $key /inheritance:r /grant:r "$($env:USERNAME):R" | Out-Null
+          # OpenSSH is picky: keys need LF line endings and a trailing newline.
+          $keyContent = $env:DEPLOY_KEY -replace "`r`n", "`n" -replace "`r", "`n"
+          if (-not $keyContent.EndsWith("`n")) { $keyContent += "`n" }
+          [System.IO.File]::WriteAllText($key, $keyContent, (New-Object System.Text.UTF8Encoding $false))
+          # Non-sensitive diagnostics (no key material printed).
+          $okHead = $keyContent.StartsWith("-----BEGIN OPENSSH PRIVATE KEY-----")
+          Write-Host "key: lines=$(($keyContent -split "`n").Count) validHeader=$okHead bytes=$($keyContent.Length)"
+          icacls $key /inheritance:r /grant:r "$($env:USERNAME):F" | Out-Null
           $ver = "6.0.3.$env:GITHUB_RUN_NUMBER"
           Write-Host "Publishing $ver from $($exe.Name)"
           cmd /c "ssh -i `"$key`" -o BatchMode=yes -o StrictHostKeyChecking=accept-new root@166.1.71.138 `"$ver`" < `"$($exe.FullName)`""
